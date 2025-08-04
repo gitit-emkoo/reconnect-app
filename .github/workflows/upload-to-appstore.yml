@@ -17,26 +17,20 @@ jobs:
       with:
         node-version: '16'
     
-    - name: Install Expo CLI and EAS CLI
-      run: |
-        npm install -g @expo/cli@latest
-        npm install -g eas-cli@latest
+    - name: Install EAS CLI
+      run: npm install -g eas-cli@latest
     
-    - name: Check versions
-      run: |
-        expo --version
-        eas --version
+    - name: Check EAS CLI version
+      run: eas --version
     
     - name: Login to Expo
       run: |
         echo "Token length: ${#EXPO_TOKEN}"
         echo "Token starts with: ${EXPO_TOKEN:0:10}..."
-        # Try Expo CLI login first
-        expo login --non-interactive || echo "Expo login failed"
-        expo whoami || echo "Expo whoami failed"
-        # Then try EAS
-        eas whoami || echo "EAS whoami failed"
-        eas project:list || echo "project:list failed"
+        # Try EAS login with token
+        eas login
+        eas whoami
+        eas project:list
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
