@@ -18,15 +18,30 @@ jobs:
         node-version: '16'
     
     - name: Install EAS CLI
-      run: npm install -g eas-cli
+      run: npm install -g eas-cli@latest
+    
+    - name: Check EAS CLI version
+      run: eas --version
     
     - name: Login to Expo
-      run: eas login
+      run: eas login --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    
+    - name: Initialize EAS project
+      run: eas init --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    
+    - name: Check project status
+      run: eas project:info
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
     - name: Build iOS
       run: eas build --platform ios --profile production --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
     - name: Upload to App Store Connect
       run: eas submit --platform ios --latest
