@@ -47,7 +47,7 @@ jobs:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
     - name: Build iOS
-      run: eas build --platform ios --profile production --non-interactive
+      run: eas build --platform ios --profile production --non-interactive --wait
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
