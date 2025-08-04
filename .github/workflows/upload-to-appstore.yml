@@ -50,6 +50,7 @@ jobs:
       run: eas build --platform ios --profile production --non-interactive --wait
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        EXPO_NO_CAPABILITY_SYNC: 1
     
     - name: Upload to App Store Connect
       run: eas submit --platform ios --latest
