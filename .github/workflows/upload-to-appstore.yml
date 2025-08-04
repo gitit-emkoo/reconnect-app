@@ -15,15 +15,13 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '16'
     
     - name: Install EAS CLI
-      run: npm install -g eas-cli
+      run: npm install -g @expo/eas-cli
     
     - name: Login to Expo
-      run: eas login --non-interactive
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: eas login --token ${{ secrets.EXPO_TOKEN }}
     
     - name: Build iOS
       run: eas build --platform ios --profile production --non-interactive
