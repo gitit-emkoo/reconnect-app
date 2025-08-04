@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "리커넥트",
-    "slug": "reconnect-webview",
+    "slug": "reconnect",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

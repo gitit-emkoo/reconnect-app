@@ -37,7 +37,7 @@ jobs:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
     - name: Initialize EAS project
-      run: eas init --non-interactive
+      run: eas init --non-interactive --force
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
