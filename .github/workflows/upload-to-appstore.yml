@@ -18,7 +18,7 @@ jobs:
         node-version: '16'
     
     - name: Install EAS CLI
-      run: npm install -g @expo/eas-cli
+      run: npm install -g eas-cli
     
     - name: Login to Expo
       run: eas login --token ${{ secrets.EXPO_TOKEN }}
