@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "reconnect-webview",
+    "name": "리커넥트",
     "slug": "reconnect-webview",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,15 +8,28 @@
     "scheme": "reconnectwebview",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "리커넥트 - 감정 기록, 관계 돌봄 부부 갈등 케어 앱",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.reconnect.kwcc",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleDisplayName": "리커넥트",
+        "CFBundleName": "리커넥트",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.reconnect.kwcc",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -31,12 +44,18 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000000"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1241284e-b25e-40ee-9567-357a7705e15d"
+      }
     }
   }
 }
