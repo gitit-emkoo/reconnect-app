@@ -24,7 +24,12 @@ jobs:
       run: eas --version
     
     - name: Login to Expo
-      run: eas login
+      run: |
+        echo "Token length: ${#EXPO_TOKEN}"
+        echo "Token starts with: ${EXPO_TOKEN:0:10}..."
+        echo $EXPO_TOKEN | eas login
+        eas whoami
+        eas project:list
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
