@@ -24,7 +24,7 @@ jobs:
       run: eas --version
     
     - name: Login to Expo
-      run: eas login --non-interactive
+      run: eas login
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
