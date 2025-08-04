@@ -28,9 +28,9 @@ jobs:
         echo "Token length: ${#EXPO_TOKEN}"
         echo "Token starts with: ${EXPO_TOKEN:0:10}..."
         # Try EAS login with token
-        eas login
-        eas whoami
-        eas project:list
+        eas login || echo "Login failed with exit code: $?"
+        eas whoami || echo "Whoami failed with exit code: $?"
+        eas project:list || echo "Project list failed with exit code: $?"
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
