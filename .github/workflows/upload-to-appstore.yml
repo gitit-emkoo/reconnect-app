@@ -53,7 +53,7 @@ jobs:
         EXPO_NO_CAPABILITY_SYNC: 1
     
     - name: Upload to App Store Connect
-      run: eas submit --platform ios --latest
+      run: eas submit --platform ios --latest --non-interactive
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         APPLE_ID: ${{ secrets.APPLE_ID }}
