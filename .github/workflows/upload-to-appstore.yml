@@ -55,5 +55,6 @@ jobs:
     - name: Upload to App Store Connect
       run: eas submit --platform ios --latest
       env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }} 
