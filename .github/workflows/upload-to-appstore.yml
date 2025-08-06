@@ -46,15 +46,26 @@ jobs:
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     
-    - name: Build iOS
-      run: eas build --platform ios --profile production --non-interactive --wait
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        EXPO_NO_CAPABILITY_SYNC: 1
+    # - name: Build iOS
+    #   run: eas build --platform ios --profile production --non-interactive --wait
+    #   env:
+    #     EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    #     EXPO_NO_CAPABILITY_SYNC: 1
     
-    - name: Upload to App Store Connect
-      run: eas submit --platform ios --latest --non-interactive
+    - name: Build Android
+      run: eas build --platform android --profile production --non-interactive --wait
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        APPLE_ID: ${{ secrets.APPLE_ID }}
-        APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }} 
+    
+    # - name: Upload to App Store Connect
+    #   run: eas submit --platform ios --latest --non-interactive
+    #   env:
+    #     EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    #     APPLE_ID: ${{ secrets.APPLE_ID }}
+    #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+    
+    - name: Upload to Google Play Console
+      run: eas submit --platform android --latest --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }} 
