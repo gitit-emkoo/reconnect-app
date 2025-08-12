@@ -33,19 +33,15 @@ jobs:
         run: |
           eas build --platform ios --profile production --non-interactive --wait
 
-      - name: Submit latest iOS build to App Store Connect (Apple ID, upload only)
+      - name: Submit latest iOS build to App Store Connect (upload only)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           FASTLANE_USER: ${{ secrets.APPLE_ID }}
           FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
         shell: bash
         run: |
           set -e
-          if [ -n "${ASC_APP_ID}" ]; then
-            eas submit -p ios --latest --non-interactive --apple-id "${APPLE_ID}" --asc-app-id "${ASC_APP_ID}" --verbose
-          else
-            eas submit -p ios --latest --non-interactive --apple-id "${APPLE_ID}" --verbose
-          fi
+          # Apple ID는 환경변수(FASTLANE_USER)와 앱 전용 비밀번호를 사용합니다.
+          eas submit -p ios --latest --non-interactive --verbose
