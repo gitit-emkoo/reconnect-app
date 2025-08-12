@@ -13,6 +13,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.reconnect.kwcc",
       "buildNumber": "2",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "리커넥트",
         "CFBundleName": "리커넥트",
@@ -28,7 +29,8 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "INTERNET"
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ]
     },
     "web": {
@@ -46,7 +48,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#000000"
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

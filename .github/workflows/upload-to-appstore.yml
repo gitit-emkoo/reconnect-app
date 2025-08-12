@@ -1,71 +1,48 @@
-name: Build and Upload to App Store Connect
+name: Build and Upload to App Store (iOS)
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
-  build-and-upload:
+  build_and_upload_ios:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 60
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    
-    - name: Install EAS CLI
-      run: npm install -g eas-cli@latest
-    
-    - name: Check EAS CLI version
-      run: eas --version
-    
-    - name: Install dependencies
-      run: npm install
-    
-    - name: Login to Expo
-      run: |
-        echo "Token length: ${#EXPO_TOKEN}"
-        echo "Token starts with: ${EXPO_TOKEN:0:10}..."
-        # Try to login
-        eas login || echo "Login failed"
-        eas whoami || echo "Not logged in"
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    
-    - name: Initialize EAS project
-      run: eas init --non-interactive --force
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    
-    - name: Check project status
-      run: eas project:info
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    
-    # - name: Build iOS
-    #   run: eas build --platform ios --profile production --non-interactive --wait
-    #   env:
-    #     EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    #     EXPO_NO_CAPABILITY_SYNC: 1
-    
-    - name: Build Android
-      run: eas build --platform android --profile production --non-interactive --wait
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    
-    # - name: Upload to App Store Connect
-    #   run: eas submit --platform ios --latest --non-interactive
-    #   env:
-    #     EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-    #     APPLE_ID: ${{ secrets.APPLE_ID }}
-    #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-    
-    - name: Upload to Google Play Console
-      run: eas submit --platform android --latest --non-interactive
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }} 
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Expo (EAS)
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS (EAS Cloud)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build --platform ios --profile production --non-interactive --wait
+
+      - name: Submit latest iOS build to App Store Connect (Apple ID, upload only)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+        shell: bash
+        run: |
+          set -e
+          if [ -n "${ASC_APP_ID}" ]; then
+            eas submit -p ios --latest --non-interactive --apple-id "${APPLE_ID}" --asc-app-id "${ASC_APP_ID}" --verbose
+          else
+            eas submit -p ios --latest --non-interactive --apple-id "${APPLE_ID}" --verbose
+          fi

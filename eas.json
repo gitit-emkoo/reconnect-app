@@ -9,11 +9,19 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://reconnect-backend.onrender.com",
+        "EXPO_PUBLIC_API_PREFIX": "/api"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://reconnect-backend.onrender.com",
+        "EXPO_PUBLIC_API_PREFIX": "/api"
+      },
       "android": {
         "buildType": "app-bundle"
       }

@@ -1,0 +1,34 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Submit latest processed build for App Store review"
+  lane :submit_review do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_API_KEY_ID"],
+      issuer_id: ENV["ASC_API_KEY_ISSUER_ID"],
+      key_content: ENV["ASC_API_KEY_P8"],
+      in_house: false
+    )
+
+    # Submit the app for review using the latest processed build.
+    # Assumes metadata/screenshot changes are already handled in App Store Connect.
+    deliver(
+      api_key: api_key,
+      app_identifier: ENV["APP_IDENTIFIER"],
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      release_notes: {
+        "ko-KR" => (ENV["RELEASE_NOTES_KO"] || "버그 수정 및 안정성 개선"),
+        "en-US" => (ENV["RELEASE_NOTES_EN"] || "Bug fixes and performance improvements")
+      }
+    )
+  end
+end
+
+
+
