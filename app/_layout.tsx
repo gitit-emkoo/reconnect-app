@@ -25,12 +25,29 @@ export default function RootLayout() {
   const isAppleLoginInProgress = React.useRef(false);
 
   const isExpoGo = Constants.appOwnership === 'expo';
+  console.log('🟢 Google OAuth 설정 - isExpoGo:', isExpoGo);
 
-  // Google OAuth 요청 훅 (네이티브 클라이언트 ID 우선)
+  // 네이티브용 Google redirectUri (Google 권장 스킴)
+  // 환경변수에 전체 ID("...apps.googleusercontent.com")가 들어올 수 있어, 도메인 접미사를 제거해 구성합니다.
+  const buildNativeGoogleRedirectUri = (rawClientId?: string) => {
+    if (!rawClientId) return undefined;
+    const baseId = rawClientId.replace(/\.apps\.googleusercontent\.com$/i, '');
+    return `com.googleusercontent.apps.${baseId}:/oauth2redirect`;
+  };
+
+  const nativeGoogleRedirectUri = !isExpoGo
+    ? (Platform.OS === 'android'
+        ? buildNativeGoogleRedirectUri(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID as string | undefined)
+        : buildNativeGoogleRedirectUri(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID as string | undefined))
+    : undefined;
+  console.log('🟢 nativeGoogleRedirectUri =', nativeGoogleRedirectUri);
+
+  // Google OAuth 요청 훅 (네이티브에서는 webClientId 전달하지 않음)
   const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID as string | undefined,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID as string | undefined,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID as string | undefined,
+    webClientId: isExpoGo ? (process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID as string | undefined) : undefined,
+    redirectUri: nativeGoogleRedirectUri,
     scopes: ['openid', 'profile', 'email'],
     responseType: 'code',
     extraParams: { access_type: 'offline', prompt: 'consent' },
@@ -54,6 +71,11 @@ export default function RootLayout() {
   // Apple 로그인
   const handleAppleLogin = async () => {
     console.log('🍏 handleAppleLogin 호출됨');
+    // iOS에서만 동작하도록 가드 (안드로이드는 무시)
+    if (Platform.OS !== 'ios') {
+      console.log('🍏 Apple 로그인 요청 무시: 플랫폼이 iOS가 아닙니다 ->', Platform.OS);
+      return;
+    }
     if (isAppleLoginInProgress.current) return;
     isAppleLoginInProgress.current = true;
     try {
@@ -94,8 +116,14 @@ export default function RootLayout() {
     console.log('🟢 handleGoogleLogin 호출됨');
     try {
       if (isExpoGo) {
-        const redirectUri = (AuthSession.makeRedirectUri as any)({ useProxy: true });
-        const clientId = (process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID as string) || 'YOUR_GOOGLE_WEB_CLIENT_ID';
+        const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID as string | undefined;
+        if (!clientId) {
+          Alert.alert('Google 로그인 오류', 'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID가 설정되지 않았습니다.');
+          return;
+        }
+        // makeRedirectUri가 환경에 따라 exp://를 반환하는 문제가 있어, 프록시 URI를 고정 문자열로 사용합니다.
+        const redirectUri = 'https://auth.expo.dev/@kwcc/reconnect';
+        console.log('🟢 [Expo Go] 고정 redirectUri(https) =', redirectUri);
         const request = new AuthSession.AuthRequest({
           clientId,
           scopes: ['openid', 'profile', 'email'],
@@ -116,9 +144,30 @@ export default function RootLayout() {
             },
           }));
         }
+        if (result.type !== 'success') {
+          console.log('🟢 Google 로그인 종료 상태:', result.type);
+          if (webViewRef.current) {
+            webViewRef.current.postMessage(JSON.stringify({ type: 'debug', message: '[google] result.type=' + result.type }));
+          }
+        }
         return;
       }
 
+      // 네이티브(Android/iOS)에서는 명시적으로 올바른 redirectUri 사용
+      const platformClientId = Platform.OS === 'android'
+        ? (process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID as string | undefined)
+        : (process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID as string | undefined);
+      
+      if (!platformClientId) {
+        Alert.alert('Google 로그인 오류', `플랫폼 클라이언트 ID가 설정되지 않았습니다. (${Platform.OS})`);
+        return;
+      }
+
+      // 네이티브에서는 기본 useAuthRequest 훅 사용 (Expo가 자동으로 올바른 redirectUri 생성)
+      console.log('🟢 네이티브 Google 로그인 - 기본 훅 사용');
+      const debugClientId = platformClientId?.slice(0, 12) + '…';
+      const debugRedirect = googleRequest?.redirectUri || nativeGoogleRedirectUri;
+      Alert.alert('🟢 네이티브 인증 시작', `clientId=${debugClientId}\nredirectUri=${debugRedirect}`);
       const result = await promptGoogleAsync();
       console.log('🟢 Google 로그인 result:', result);
       if (result.type === 'success' && webViewRef.current) {
@@ -146,6 +195,8 @@ export default function RootLayout() {
   const injectedJavaScript = `
     document.addEventListener('click', function(e) {
       const t = e.target;
+      // 사용자 직접 클릭이 아닌 프로그램적 클릭은 무시
+      if (e && e.isTrusted === false) { return true; }
       if (t && (t.textContent?.includes('Apple') || t.className?.includes('apple') || t.id?.includes('apple'))) {
         window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'request-apple-login' }));
         e.preventDefault(); e.stopPropagation();
@@ -440,13 +491,29 @@ export default function RootLayout() {
               if (data.type === 'debug') {
                 console.log('[웹앱 디버그]', data.message);
               }
-              if (data.type === 'request-apple-login') handleAppleLogin();
+              if (data.type === 'request-apple-login') {
+                if (Platform.OS === 'ios') handleAppleLogin();
+                else console.log('🍏 안드로이드에서 수신된 애플 로그인 요청 무시');
+              }
               else if (data.type === 'request-google-login') handleGoogleLogin();
             } catch (e) {
               console.log('💬 WebView onMessage 파싱 에러:', e);
             }
           }}
-          onShouldStartLoadWithRequest={req => req.url.includes('reconnect-ivory.vercel.app')}
+          // 딥링크만 처리: OAuth 완료 후 com.reconnect.kwcc:// 로 돌아올 때만 잡아준다
+          onShouldStartLoadWithRequest={req => {
+            try {
+              const url = req.url || '';
+              console.log('🔍 WebView navigation request:', url);
+              if (/^com\.reconnect\.kwcc:\/\//.test(url)) {
+                console.log('🔗 딥링크 감지 → 네이티브 처리:', url);
+                return false;
+              }
+            } catch (error) {
+              console.log('🔍 onShouldStartLoadWithRequest 에러:', error);
+            }
+            return true;
+          }}
           onError={e => {
             console.log('🌐 WebView onError:', e.nativeEvent);
             Alert.alert('오류', '페이지를 불러오는 중 오류가 발생했습니다.');
